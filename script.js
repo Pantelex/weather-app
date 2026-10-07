@@ -5,7 +5,7 @@ const apiKey = "02671b99e6cfc317be9506af7d80da1c";
 const searchBtn = document.getElementById("search-btn");
 const cityInput = document.getElementById("city-input");
 const currentWeatherDiv = document.getElementById("current-weather");
-const foreCastDiv = document.getElementById("forecast");
+const forecastDiv = document.getElementById("forecast");
 
 // Add Event Listener
 searchBtn.addEventListener("click", () => {
@@ -63,14 +63,21 @@ function displayCurrentWeather(data) {
 
 // 6. Display forecast
 function displayForecast(data) {
-  const dailyForecasts = data.list.filte((item) =>
-    item.dt_txt.includes("12:00:00"),
-  );
+  if (!data.list) {
+    forecastDiv.innerHTML = `<p style="color: red;">The server did not send the list of days.</p>`;
+    forecastDiv.classList.remove("hidden");
+    return;
+  }
+
+  const dailyForecasts = [];
+  for (let i = 0; i < data.list.length; i += 8) {
+    dailyForecasts.push(data.list[i]);
+  }
 
   let forecastHTML = `<h3>Forecast for upcoming days:</h3><div class="forecast-cards">`;
 
   dailyForecasts.forEach((forecast) => {
-    const date = new Date(forecast.dt.txt);
+    const date = new Date(forecast.dt_txt);
     const dateString = date.toLocaleDateString("en-US", {
       day: "numeric",
       month: "short",
@@ -90,7 +97,15 @@ function displayForecast(data) {
   });
 
   forecastHTML += `</div>`;
-
-  foreCastDiv.innerHTML = forecastHTML;
-  foreCastDiv.classList.remove("hidden");
+  forecastDiv.innerHTML = forecastHTML;
+  forecastDiv.classList.remove("hidden");
 }
+
+//// 7. Adding 'Enter' functionality to the input field
+cityInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+
+    searchBtn.click();
+  }
+});
